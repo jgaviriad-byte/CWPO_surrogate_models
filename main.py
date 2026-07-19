@@ -9,6 +9,11 @@ from src.eda import (
     experiment_summary,
     plot_feature_distributions
 )
+from src.validation import (
+    generate_leave_one_experiment_out,
+    summarize_validation,
+    verify_validation
+)
 def main():
 
     df = load_dataset()
@@ -19,7 +24,10 @@ def main():
 
     save_processed_dataset(df)
 
-    plot_feature_distributions(df)
+    folds = generate_leave_one_experiment_out(df)
 
+    summarize_validation(folds)
+
+    verify_validation(folds)
 if __name__ == "__main__":
     main()

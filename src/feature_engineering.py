@@ -1,0 +1,69 @@
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.preprocessing import StandardScaler
+
+def get_features_target():
+    FEATURES = [
+
+        "tiempo (min)",
+
+        "[CAT]",
+
+        "Temp(K?)",
+
+        "Flujo_M"
+
+    ]
+
+    TARGET = "MON_norm"
+
+    return FEATURES, TARGET
+
+def split_features_target(df, features, target):
+
+    """
+    Separate predictors
+    and target variable.
+    """
+
+    X = df[features].copy()
+
+    y = df[target].copy()
+
+    return X, y
+
+def scale_features(
+        X_train,
+        X_test
+):
+    scaler = StandardScaler()
+
+    X_train_scaled = scaler.fit_transform(
+        X_train
+    )
+
+    X_test_scaled = scaler.transform(
+        X_test
+    )
+
+    return X_train_scaled, X_test_scaled, scaler
+
+def scale_target(
+        y_train,
+        y_test
+):
+
+    scaler = StandardScaler()
+
+    y_train_scaled = scaler.fit_transform(
+        y_train.values.reshape(-1,1)
+    ).ravel()
+
+    y_test_scaled = scaler.transform(
+        y_test.values.reshape(-1,1)
+    ).ravel()
+
+    return (
+        y_train_scaled,
+        y_test_scaled,
+        scaler
+    )
