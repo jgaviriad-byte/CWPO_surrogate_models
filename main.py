@@ -4,8 +4,11 @@ from src.preprocessing import (
     create_mon_fraction,
     save_processed_dataset
 )
-
-
+from src.eda import (
+    dataset_summary,
+    experiment_summary,
+    plot_feature_distributions
+)
 def main():
 
     df = load_dataset()
@@ -16,6 +19,7 @@ def main():
 
     save_processed_dataset(df)
 
+    plot_feature_distributions(df)
 
 if __name__ == "__main__":
     main()
