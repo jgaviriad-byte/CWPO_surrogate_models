@@ -340,3 +340,22 @@ def plot_feature_distributions(df):
     )
 
     plt.show()
+
+def experiment_conditions(df):
+
+    print("\nEXPERIMENT CONDITIONS")
+    print("-"*70)
+
+    cols = [
+        "Temp(K?)",
+        "[CAT]",
+        "Flujo_M",
+        "[H2O2]"
+    ]
+
+    summary = (
+        df.groupby("Ensayo")[cols]
+          .first()
+    )
+
+    print(summary.round(4))

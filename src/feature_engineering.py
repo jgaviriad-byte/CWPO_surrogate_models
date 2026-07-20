@@ -67,3 +67,19 @@ def scale_target(
         y_test_scaled,
         scaler
     )
+
+def create_polynomial_features(
+    X_train,
+    X_test,
+    degree=2
+):
+    poly = PolynomialFeatures(
+        degree=degree,
+        include_bias=False
+    )
+
+    X_train_poly = poly.fit_transform(X_train)
+
+    X_test_poly = poly.transform(X_test)
+
+    return X_train_poly, X_test_poly, poly
