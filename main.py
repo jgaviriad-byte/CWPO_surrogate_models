@@ -14,56 +14,32 @@ from src.plots import plot_experiment
 
 def main():
 
-    print("Loading processed dataset...")
-
     df = pd.read_csv(PROCESSED_DATA_PATH)
 
     print(f"Dataset shape: {df.shape}")
-
-    # -----------------------------------------
-    # Validation folds
-    # -----------------------------------------
 
     folds = generate_leave_one_experiment_out(df)
 
     print(f"Validation folds: {len(folds)}")
 
-    # -----------------------------------------
-    # Show experiment conditions
-    # -----------------------------------------
-
     experiment_conditions(df)
-
-    # -----------------------------------------
-    # Load models
-    # -----------------------------------------
 
     models = get_models()
 
     print(f"\nModels available: {list(models.keys())}")
-
-    # -----------------------------------------
-    # Train all models
-    # -----------------------------------------
 
     all_results = train_all_models(
         models,
         folds
     )
 
-    # -----------------------------------------
-    # Evaluate all models
-    # -----------------------------------------
+    summaries = evaluate_all_models(
+        all_results
+    )
 
-    summaries = evaluate_all_models(all_results)
-
-    print_all_models_summary(summaries)
-
-    # -----------------------------------------
-    # Plot problematic experiments
-    # -----------------------------------------
-
-    print("\nGenerating prediction plots...")
+    print_all_models_summary(
+        summaries
+    )
 
     plot_experiment(
         all_results["Polynomial Regression"],

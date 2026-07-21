@@ -1,3 +1,10 @@
+from pathlib import Path
+
+from sklearn.gaussian_process.kernels import (
+    ConstantKernel,
+    Matern,
+    WhiteKernel,
+)
 DATA_PATH = "data/raw/Doe_Completos.csv"
 
 PROCESSED_DATA_PATH = "data/processed/Doe_processed.csv"
@@ -24,6 +31,49 @@ FEATURES_H2O2 = [
     "Flujo_M"
 ]
 
+MODEL_CONFIG = {
+
+    "Polynomial Regression": {
+
+        "use_polynomial": True,
+
+        "use_scaling": False,
+
+        "use_target_scaling": False
+
+    },
+
+    "Random Forest": {
+
+        "use_polynomial": False,
+
+        "use_scaling": False,
+
+        "use_target_scaling": False
+
+    },
+
+    "Artificial Neural Network": {
+
+        "use_polynomial": False,
+
+        "use_scaling": True,
+
+        "use_target_scaling": True
+
+    },
+
+    "Gaussian Process Regression": {
+
+        "use_polynomial": False,
+
+        "use_scaling": True,
+
+        "use_target_scaling": True
+
+    }
+
+}
 
 RF_PARAMS = {
 
@@ -64,3 +114,42 @@ GPR_PARAMS = {
     "random_state":42
 
 }
+
+KERNEL_PARAMS = {
+    "constant_value": 1.0,
+
+    "length_scale": 1.0,
+
+    "noise_level": 1e-5,
+
+    "nu": 2.5
+}
+
+def KERNEL_BUILD():   
+    return(
+
+        ConstantKernel(
+
+            constant_value=KERNEL_PARAMS["constant_value"]
+
+        )
+
+        *
+
+        Matern(
+
+            length_scale=KERNEL_PARAMS["length_scale"],
+
+            nu=KERNEL_PARAMS["nu"]
+
+        )
+
+        +
+
+        WhiteKernel(
+
+            noise_level=KERNEL_PARAMS["noise_level"]
+
+        )
+
+    )

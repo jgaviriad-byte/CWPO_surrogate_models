@@ -2,87 +2,50 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import (
-    ConstantKernel,
-    Matern,
-    WhiteKernel
+from src.config import KERNEL_BUILD
+
+from src.config import (
+
+    RF_PARAMS,
+
+    ANN_PARAMS,
+
+    GPR_PARAMS,
+
+    MODEL_CONFIG,
+
+    KERNEL_BUILD
+
 )
 
 def polynomial_regression():
+    return LinearRegression()
 
-    model = LinearRegression()
-
-    return model
 
 def random_forest():
+    return RandomForestRegressor(
 
-    model = RandomForestRegressor(
-
-        n_estimators=200,
-
-        max_depth=15,
-
-        min_samples_leaf=5,
-
-        random_state=42,
-
-        n_jobs=-1
+        **RF_PARAMS
 
     )
-
-    return model
 
 def neural_network():
+    return MLPRegressor(
 
-    model = MLPRegressor(
-
-        hidden_layer_sizes=(128,64,32),
-
-        activation="relu",
-
-        solver="adam",
-
-        alpha=0.0293,
-
-        max_iter=1000,
-
-        random_state=42
+        **ANN_PARAMS
 
     )
 
-    return model
+
 
 def gaussian_process():
+    return GaussianProcessRegressor(
+        kernel=KERNEL_BUILD(),     
 
-    kernel = (
-
-        ConstantKernel()
-
-        *
-
-        Matern(
-
-            nu=2.5
-
-        )
-
-        +
-
-        WhiteKernel()
+        **GPR_PARAMS
 
     )
 
-    model = GaussianProcessRegressor(
-
-        kernel=kernel,
-
-        normalize_y=True,
-
-        random_state=42
-
-    )
-
-    return model
 
 def get_models():
 
@@ -90,49 +53,33 @@ def get_models():
 
         "Polynomial Regression": {
 
-            "model": polynomial_regression(),
+            "builder": polynomial_regression,
 
-            "use_polynomial": True,
-
-            "use_scaling": False,
-
-            "use_target_scaling": False
+            **MODEL_CONFIG["Polynomial Regression"]
 
         },
 
         "Random Forest": {
 
-            "model": random_forest(),
+            "builder": random_forest,
 
-            "use_polynomial": False,
-
-            "use_scaling": False,
-
-            "use_target_scaling": False
+            **MODEL_CONFIG["Random Forest"]
 
         },
 
         "Artificial Neural Network": {
 
-            "model": neural_network(),
+            "builder": neural_network,
 
-            "use_polynomial": False,
-
-            "use_scaling": True,
-
-            "use_target_scaling": True
+            **MODEL_CONFIG["Artificial Neural Network"]
 
         },
 
         "Gaussian Process Regression": {
 
-            "model": gaussian_process(),
+            "builder": gaussian_process,
 
-            "use_polynomial": False,
-
-            "use_scaling": True,
-
-            "use_target_scaling": True
+            **MODEL_CONFIG["Gaussian Process Regression"]
 
         }
 

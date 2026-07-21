@@ -19,36 +19,6 @@ from src.feature_engineering import (
 from src.feature_engineering import *
 from src.validation import generate_leave_one_experiment_out
 
-
-
-models = {
-
-    "Polynomial Regression": {
-        "model": polynomial_regression(),
-        "use_scaling": False,
-        "use_polynomial": True
-    },
-
-    "Random Forest": {
-        "model": random_forest(),
-        "use_scaling": False,
-        "use_polynomial": False
-    },
-
-    "Artificial Neural Network": {
-        "model": neural_network(),
-        "use_scaling": True,
-        "use_polynomial": False
-    },
-
-    "Gaussian Process Regression": {
-        "model": gaussian_process(),
-        "use_scaling": True,
-        "use_polynomial": False
-    }
-
-}
-
 def train_single_fold(
     model_config,
     train_df,
@@ -89,7 +59,7 @@ def train_single_fold(
             y_test
         )
     
-    model = model_config["model"]
+    model = model_config["builder"]()
 
     model.fit(
         X_train,
