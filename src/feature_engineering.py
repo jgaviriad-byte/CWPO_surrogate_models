@@ -1,29 +1,12 @@
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.preprocessing import StandardScaler
+from src.config import FEATURES_MON, TARGET_NORMALIZED, POLY_DEGREE
 
 def get_features_target():
-    FEATURES = [
-
-        "tiempo (min)",
-
-        "[CAT]",
-
-        "Temp(K?)",
-
-        "Flujo_M"
-
-    ]
-
-    TARGET = "MON_norm"
-
-    return FEATURES, TARGET
+    
+    return FEATURES_MON, TARGET_NORMALIZED
 
 def split_features_target(df, features, target):
-
-    """
-    Separate predictors
-    and target variable.
-    """
 
     X = df[features].copy()
 
@@ -71,7 +54,7 @@ def scale_target(
 def create_polynomial_features(
     X_train,
     X_test,
-    degree=2
+    degree=POLY_DEGREE
 ):
     poly = PolynomialFeatures(
         degree=degree,

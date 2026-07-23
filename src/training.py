@@ -1,14 +1,3 @@
-import pandas as pd
-import numpy as np
-from src.models import get_models
-from src.models import (
-    polynomial_regression,
-    random_forest,
-    neural_network,
-    gaussian_process,
-    get_models
-)
-
 from src.feature_engineering import (
     get_features_target,
     split_features_target,
@@ -16,26 +5,24 @@ from src.feature_engineering import (
     scale_target,
     create_polynomial_features
 )
-from src.feature_engineering import *
-from src.validation import generate_leave_one_experiment_out
 
 def train_single_fold(
     model_config,
     train_df,
     test_df
 ):
-    FEATURES, TARGET = get_features_target()
+    features, target = get_features_target()
 
     X_train, y_train = split_features_target(
         train_df,
-        FEATURES,
-        TARGET
+        features,
+        target
     )
 
     X_test, y_test = split_features_target(
         test_df,
-        FEATURES,
-        TARGET
+        features,
+        target
     )
 
     if model_config["use_polynomial"]:

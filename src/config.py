@@ -24,12 +24,21 @@ FEATURES_MON = [
     "Flujo_M"
 ]
 
+FEATURES_NO_TIME = [
+    "[CAT]",
+    "Temp(K?)",
+    "Flujo_M"
+]
+
 FEATURES_H2O2 = [
     "tiempo (min)",
     "[CAT]",
     "Temp(K?)",
     "Flujo_M"
 ]
+
+FIGURES_PATH = "results/figures"
+PREDICTIONS_PATH = f"{FIGURES_PATH}/predictions"
 
 MODEL_CONFIG = {
 

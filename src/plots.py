@@ -1,7 +1,8 @@
 import os
 import matplotlib.pyplot as plt
+from src.config import PREDICTIONS_PATH
 
-def plot_prediction(result, save=True):
+def plot_prediction(result, save=True, show=True):
     experiment = result["experiment"]
 
     time = result["time"]
@@ -33,7 +34,10 @@ def plot_prediction(result, save=True):
     plt.ylabel("MON normalized")
     plt.title(f"Experiment {experiment}")
 
-    plt.grid(alpha=0.3)
+    plt.grid(
+    True,
+    alpha=0.3
+    )
 
     plt.legend()
 
@@ -42,16 +46,19 @@ def plot_prediction(result, save=True):
     if save:
 
         os.makedirs(
-            "results/figures/predictions",
+            PREDICTIONS_PATH,
             exist_ok=True
         )
 
         plt.savefig(
-            f"results/figures/predictions/experiment_{experiment}.png",
+            f"{PREDICTIONS_PATH}/experiment_{experiment}.png",
             dpi=300
         )
 
-    plt.show()
+    if show:
+        plt.show()
+    else:
+        plt.close()
 
 def plot_experiment(results, experiment):
 
@@ -63,4 +70,6 @@ def plot_experiment(results, experiment):
 
             return
 
-    print(f"Experiment {experiment} not found.")
+    raise ValueError(
+    f"Experiment {experiment} not found."
+    )

@@ -34,9 +34,7 @@ def neural_network():
 
         **ANN_PARAMS
 
-    )
-
-
+    )   
 
 def gaussian_process():
     return GaussianProcessRegressor(

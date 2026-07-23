@@ -1,15 +1,16 @@
 import pandas as pd
+from src.config import EXPERIMENT_COLUMN
 
 def generate_leave_one_experiment_out(df):
     folds = []
 
-    experiments = sorted(df["Ensayo"].unique())
+    experiments = sorted(df[EXPERIMENT_COLUMN].unique())
 
     for experiment in experiments:
 
-        train_df = df[df["Ensayo"] != experiment].copy()
+        train_df = df[df[EXPERIMENT_COLUMN] != experiment].copy()
 
-        test_df = df[df["Ensayo"] == experiment].copy()
+        test_df = df[df[EXPERIMENT_COLUMN] == experiment].copy()
 
         folds.append(
             (
@@ -30,9 +31,9 @@ def summarize_validation(folds):
 
         print(f"Test experiment      : {experiment}")
 
-        print(f"Training experiments : {train['Ensayo'].nunique()}")
+        print(f"Training experiments : {train[EXPERIMENT_COLUMN].nunique()}")
 
-        print(f"Testing experiments  : {test['Ensayo'].nunique()}")
+        print(f"Testing experiments  : {test[EXPERIMENT_COLUMN].nunique()}")
 
         print(f"Training samples     : {len(train)}")
 
@@ -45,9 +46,9 @@ def verify_validation(folds):
 
     for train, test, experiment in folds:
 
-        train_ids = set(train["Ensayo"].unique())
+        train_ids = set(train[EXPERIMENT_COLUMN].unique())
 
-        test_ids = set(test["Ensayo"].unique())
+        test_ids = set(test[EXPERIMENT_COLUMN].unique())
 
         overlap = train_ids.intersection(test_ids)
 
