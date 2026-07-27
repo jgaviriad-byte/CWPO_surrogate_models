@@ -1,6 +1,11 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
+from src.config import (
+    ALL_FEATURES,
+    FEATURES_NO_TIME,
+    FEATURES
+)
 def dataset_summary(df):
 
     print("DATASET SUMMARY")
@@ -70,152 +75,6 @@ def experiment_summary(df):
     return summary_df
 
 
-def plot_mon_vs_time(df):
-    plt.figure(figsize=(10,6))
-
-    for ensayo, group in df.groupby("Ensayo"):
-
-        plt.plot(
-            group["tiempo (min)"],
-            group["[MON]"],
-            linewidth=2,
-            label=f"Exp {ensayo}"
-        )
-
-    plt.title("MON concentration evolution")
-
-    plt.xlabel("Time (min)")
-
-    plt.ylabel("MON concentration")
-
-    plt.grid(alpha=0.3)
-
-    plt.legend(
-        ncol=2,
-        fontsize=8
-    )
-
-    plt.tight_layout()
-
-    plt.savefig(
-        "results/figures/MON_vs_time.png",
-        dpi=300
-    )
-
-    plt.show()
-
-def plot_MONnorm_vs_time(df):
-  
-    Path("results/figures").mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
-    plt.figure(figsize=(10,6))
-
-    for ensayo, group in df.groupby("Ensayo"):
-
-        plt.plot(
-            group["tiempo (min)"],
-            group["MON_norm"],
-            linewidth=2,
-            label=f"Exp {ensayo}"
-        )
-
-    plt.title(
-        "Normalized MON concentration evolution"
-    )
-
-    plt.xlabel("Time (min)")
-
-    plt.ylabel(r"$MON/MON_0$")
-
-    plt.grid(alpha=0.3)
-
-    plt.legend(
-        ncol=2,
-        fontsize=8
-    )
-
-    plt.tight_layout()
-
-    plt.savefig(
-        "results/figures/MONnorm_vs_time.png",
-        dpi=300,
-        bbox_inches="tight"
-    )
-
-    plt.show()
-
-def plot_h2o2_vs_time(df):
-    Path("results/figures").mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
-    plt.figure(figsize=(10,6))
-
-    for ensayo, group in df.groupby("Ensayo"):
-
-        plt.plot(
-            group["tiempo (min)"],
-            group["[H2O2]"],
-            linewidth=2,
-            label=f"Exp {ensayo}"
-        )
-
-    plt.title(
-        "Hydrogen peroxide concentration evolution"
-    )
-    summary = (
-    df.groupby("Ensayo")["[H2O2]"]
-      .agg(["first", "last", "max"])
-)
-
-    print(summary.sort_values("max", ascending=False))
-    plt.xlabel("Time (min)")
-
-    plt.ylabel(r"$H_2O_2$ concentration")
-
-    plt.grid(alpha=0.3)
-
-    plt.legend(
-        fontsize=8,
-        ncol=2
-    )
-
-    plt.tight_layout()
-
-    plt.savefig(
-        "results/figures/H2O2_vs_time.png",
-        dpi=300,
-        bbox_inches="tight"
-    )
-
-    plt.show()
-
-def feature_summary(df):
-    features = [
-        "tiempo (min)",
-        "Temp(K?)",
-        "Flujo_M",
-        "[CAT]"
-    ]
-
-    print("FEATURE SUMMARY")
-    for feature in features:
-
-        print(f"\n{feature}")
-
-        print(f"Minimum : {df[feature].min():.4f}")
-
-        print(f"Maximum : {df[feature].max():.4f}")
-
-        print(f"Mean    : {df[feature].mean():.4f}")
-
-        print(f"Std     : {df[feature].std():.4f}")
-
-        print(f"Unique values : {df[feature].nunique()}")
 
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -227,15 +86,7 @@ def correlation_matrix(df):
         exist_ok=True
     )
 
-    variables = [
-        "[MON]",
-        "MON_norm",
-        "[H2O2]",
-        "[CAT]",
-        "Temp(K?)",
-        "Flujo_M",
-        "tiempo (min)"
-    ]
+    variables = ALL_FEATURES
 
     corr = df[variables].corr(method="pearson")
     print("PEARSON CORRELATION MATRIX")
@@ -244,10 +95,26 @@ def correlation_matrix(df):
     plt.figure(figsize=(8,7))
 
     im = plt.imshow(
-        corr,
-        interpolation="nearest",
-        aspect="auto"
-    )
+    corr,
+    cmap="coolwarm",
+    vmin=-1,
+    vmax=1
+)
+    
+
+    for i in range(len(variables)):
+        for j in range(len(variables)):
+            value = corr.iloc[i, j]
+
+            plt.text(
+                j,
+                i,
+                f"{value:.2f}",
+                ha="center",
+                va="center",
+                color="white" if abs(value) > 0.5 else "black",
+                fontsize=9
+        )
 
     plt.xticks(
         range(len(variables)),
@@ -261,7 +128,9 @@ def correlation_matrix(df):
         variables
     )
 
-    plt.colorbar(im)
+    cbar = plt.colorbar(im)
+
+    cbar.set_label("Pearson correlation coefficient")
 
     plt.title("Pearson Correlation Matrix")
 
@@ -276,11 +145,7 @@ def correlation_matrix(df):
     plt.show()
 
 def feature_variability_by_experiment(df):
-    variables = [
-        "Temp(K?)",
-        "[CAT]",
-        "Flujo_M"
-    ]
+    variables = []
 
     print("\n" + "="*70)
     print("OPERATING CONDITIONS BY EXPERIMENT")
@@ -304,14 +169,7 @@ def plot_feature_distributions(df):
         exist_ok=True
     )
 
-    variables = [
-        "[MON]",
-        "MON_norm",
-        "[H2O2]",
-        "[CAT]",
-        "Temp(K?)",
-        "Flujo_M"
-    ]
+    variables = ALL_FEATURES
 
     fig, axes = plt.subplots(
         2,
@@ -346,12 +204,7 @@ def experiment_conditions(df):
     print("\nEXPERIMENT CONDITIONS")
     print("-"*70)
 
-    cols = [
-        "Temp(K?)",
-        "[CAT]",
-        "Flujo_M",
-        "[H2O2]"
-    ]
+    cols = FEATURES_NO_TIME
 
     summary = (
         df.groupby("Ensayo")[cols]
@@ -359,3 +212,4 @@ def experiment_conditions(df):
     )
 
     print(summary.round(4))
+

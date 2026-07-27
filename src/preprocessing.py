@@ -40,8 +40,6 @@ def validate_dataset(df):
 
     print("\nDataset validation passed.")
 
-import pandas as pd
-
 
 def create_mon_fraction(df):
     df = df.copy()

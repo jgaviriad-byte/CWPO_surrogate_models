@@ -1,81 +1,74 @@
 import pandas as pd
 
 from src.config import (PROCESSED_DATA_PATH,
-                        FEATURES_NO_TIME
+                        FEATURES_NO_TIME,
+                        FEATURES
     )
 from src.models import get_models
 from src.validation import generate_leave_one_experiment_out
-from src.training import train_all_models
+from src.training import (train_all_models,
+    train_and_save_all_models
+)
 from src.evaluation import (
     evaluate_all_models,
-    print_all_models_summary
+    print_all_models_summary,
+    evaluate_all_folds,
+    calculate_metrics,
+    print_metrics
+    
 )
-from src.eda import experiment_conditions
-from src.plots import plot_experiment
+from src.eda import experiment_conditions, correlation_matrix
+from src.plots import (plot_experiment,
+                       plot_mon_vs_time,
+                    plot_h2o2_vs_time,
+                    plot_MONnorm_vs_time)
 from src.outliers import print_q_test
+from src.save_results import (
 
+    save_metrics,
+    save_predictions,
+    save_summary
+)
+import pandas as pd
+
+from src.predict import (predict_dataframe)
 
 def main():
 
+    MODEL_PATH = (
+        "results/models/"
+        "Gaussian Process Regression.joblib"
+    )
+
+    print("=" * 60)
+    print("TESTING TRAINED MODEL")
+    print("=" * 60)
+
     df = pd.read_csv(PROCESSED_DATA_PATH)
 
-    print(f"Dataset shape: {df.shape}")
+    X = df[FEATURES].copy()
 
-    folds = generate_leave_one_experiment_out(df)
-
-    print(f"Validation folds: {len(folds)}")
-
-    experiment_conditions(df)
-
-    print("\n")
-    print("=" * 70)
-    print("OUTLIER DETECTION (DIXON Q TEST)")
-    print("=" * 70)
-
-    conditions = (
-
-        df.groupby("Ensayo")[FEATURES_NO_TIME].first()
-
+    predictions = predict_dataframe(
+        MODEL_PATH,
+        X
     )
 
-    for variable in conditions.columns:
+    print("\nFirst 10 predictions:\n")
 
-        print_q_test(
+    print(predictions[:10])
 
-        conditions[variable],
+    print("\nPrediction shape:")
 
-        variable
+    print(predictions.shape)
 
-    )
-    
-    models = get_models()
+    metrics = calculate_metrics(
+    df["MON_norm"],
+    predictions
+)
 
-    print(f"\nModels available: {list(models.keys())}")
+    print_metrics(metrics)
 
-    all_results = train_all_models(
-        models,
-        folds
-    )
+    print("\nPrediction finished successfully.")
 
-    summaries = evaluate_all_models(
-        all_results
-    )
-
-    print_all_models_summary(
-        summaries
-    )
-
-    plot_experiment(
-        all_results["Polynomial Regression"],
-        13
-    )
-
-    plot_experiment(
-        all_results["Polynomial Regression"],
-        20
-    )
-
-    print("\nPipeline completed successfully.")
-    
 if __name__ == "__main__":
     main()

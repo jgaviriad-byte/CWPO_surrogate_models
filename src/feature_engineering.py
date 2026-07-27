@@ -1,10 +1,10 @@
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.preprocessing import StandardScaler
-from src.config import FEATURES_MON, TARGET_NORMALIZED, POLY_DEGREE
+from src.config import FEATURES, TARGET_NORMALIZED, POLY_DEGREE
 
 def get_features_target():
     
-    return FEATURES_MON, TARGET_NORMALIZED
+    return FEATURES, TARGET_NORMALIZED
 
 def split_features_target(df, features, target):
 

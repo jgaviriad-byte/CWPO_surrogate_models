@@ -17,7 +17,7 @@ TARGET = "[MON]"
 
 TARGET_NORMALIZED = "MON_norm"
 
-FEATURES_MON = [
+FEATURES = [
     "tiempo (min)",
     "[CAT]",
     "Temp(K?)",
@@ -30,11 +30,14 @@ FEATURES_NO_TIME = [
     "Flujo_M"
 ]
 
-FEATURES_H2O2 = [
-    "tiempo (min)",
-    "[CAT]",
-    "Temp(K?)",
-    "Flujo_M"
+ALL_FEATURES = [
+        "tiempo (min)",
+        "[CAT]",
+        "Temp(K?)",
+        "Flujo_M",
+        "[MON]",
+        "MON_norm",
+        "[H2O2]"
 ]
 
 FIGURES_PATH = "results/figures"

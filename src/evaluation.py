@@ -5,6 +5,9 @@ from sklearn.metrics import (
     mean_squared_error,
     mean_absolute_error
 )
+from sklearn.inspection import permutation_importance
+import pandas as pd
+import numpy as np
 
 def calculate_metrics(
     y_true,
@@ -169,3 +172,86 @@ def print_all_models_summary(summaries):
         print(f"Mean R²   : {summary['Mean R2']:.4f}")
         print(f"Mean RMSE : {summary['Mean RMSE']:.6f}")
         print(f"Mean MAE  : {summary['Mean MAE']:.6f}")
+
+
+def feature_importance(
+    model,
+    feature_names
+):
+    """
+    Computes feature importance for models that
+    expose feature_importances_.
+    """
+
+    if not hasattr(model, "feature_importances_"):
+
+        raise ValueError(
+            "Model does not provide feature_importances_."
+        )
+
+    importance = pd.DataFrame({
+
+        "Feature": feature_names,
+
+        "Importance": model.feature_importances_
+
+    })
+
+    importance = importance.sort_values(
+
+        by="Importance",
+
+        ascending=False
+
+    ).reset_index(drop=True)
+
+    return importance
+
+def permutation_feature_importance(
+    model,
+    X,
+    y,
+    feature_names,
+    n_repeats=20,
+    random_state=42
+):
+    """
+    Computes permutation importance.
+    Works for every sklearn regressor.
+    """
+
+    result = permutation_importance(
+
+        estimator=model,
+
+        X=X,
+
+        y=y,
+
+        n_repeats=n_repeats,
+
+        random_state=random_state,
+
+        scoring="r2"
+
+    )
+
+    importance = pd.DataFrame({
+
+        "Feature": feature_names,
+
+        "Importance": result.importances_mean,
+
+        "Std": result.importances_std
+
+    })
+
+    importance = importance.sort_values(
+
+        by="Importance",
+
+        ascending=False
+
+    ).reset_index(drop=True)
+
+    return importance

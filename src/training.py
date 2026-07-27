@@ -1,3 +1,7 @@
+from pathlib import Path
+
+import joblib
+
 from src.feature_engineering import (
     get_features_target,
     split_features_target,
@@ -5,6 +9,8 @@ from src.feature_engineering import (
     scale_target,
     create_polynomial_features
 )
+
+from src.utils import create_directory
 
 def train_single_fold(
     model_config,
@@ -73,7 +79,9 @@ def train_single_fold(
 
         "y_true": y_test,
 
-        "y_pred": y_pred
+        "y_pred": y_pred,
+
+        "model": model,
     
    
 }
@@ -130,3 +138,120 @@ def train_all_models(models, folds):
         all_results[model_name] = model_results
 
     return all_results
+
+def train_final_model(
+    model_config,
+    df
+):
+    """
+    Train one model using the complete dataset.
+    """
+
+    FEATURES, TARGET = get_features_target()
+
+    X, y = split_features_target(
+        df,
+        FEATURES,
+        TARGET
+    )
+
+    transformers = {}
+
+    if model_config["use_polynomial"]:
+
+        X, _, poly = create_polynomial_features(
+            X,
+            X
+        )
+
+        transformers["poly"] = poly
+
+    if model_config["use_scaling"]:
+
+        X, _, scaler_X = scale_features(
+            X,
+            X
+        )
+
+        transformers["scaler_X"] = scaler_X
+
+    if model_config["use_target_scaling"]:
+
+        y, _, scaler_y = scale_target(
+            y,
+            y
+        )
+
+        transformers["scaler_y"] = scaler_y
+
+    model = model_config["builder"]()
+
+    model.fit(
+        X,
+        y
+    )
+
+    return model, transformers
+
+
+def save_trained_model(
+    model,
+    transformers,
+    model_name
+):
+    """
+    Save trained model and preprocessing objects.
+    """
+
+    output_dir = Path(
+        "results/models"
+    )
+
+    create_directory(output_dir)
+
+    package = {
+
+        "model": model,
+
+        "transformers": transformers
+
+    }
+
+    filename = output_dir / f"{model_name}.joblib"
+
+    joblib.dump(
+        package,
+        filename
+    )
+
+    print(f"Saved: {filename}")
+
+
+def train_and_save_all_models(
+    models,
+    df
+):
+    """
+    Train every model using the complete dataset
+    and save it to disk.
+    """
+
+    print("\nTRAINING FINAL MODELS")
+    print("=" * 60)
+
+    for model_name, model_config in models.items():
+
+        print(f"\nTraining final {model_name}")
+
+        model, transformers = train_final_model(
+            model_config,
+            df
+        )
+
+        save_trained_model(
+            model,
+            transformers,
+            model_name
+        )
+
+    print("\nAll trained models saved successfully.")
