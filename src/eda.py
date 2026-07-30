@@ -1,11 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
-from src.config import (
-    ALL_FEATURES,
-    FEATURES_NO_TIME,
-    FEATURES
-)
+from src.config import FEATURES
+
 def dataset_summary(df):
 
     print("DATASET SUMMARY")
@@ -23,15 +20,16 @@ def dataset_summary(df):
 
     print("\nTime interval:")
     print(
-        f"  {df['tiempo (min)'].min()} "
+        f"  {df['Tiempo'].min()} "
         f"to "
-        f"{df['tiempo (min)'].max()} min"
+        f"{df['Tiempo'].max()} min"
     )
     print("\nSamples per experiment:")
 
     print(df.groupby("Ensayo").size())
     print("\nProcessed dataset successfully summarized.\n")
 
+from src.config import MON_COLUMN, TEMPERATURE_COLUMN
 
 def experiment_summary(df):
     summary = []
@@ -40,27 +38,27 @@ def experiment_summary(df):
 
         summary.append({
 
-            "MON_degradation(%)":(1-group["[MON]"].iloc[-1]/group["[MON]"].iloc[0])*100,
+            "MON_degradation(%)":(1-group[MON_COLUMN].iloc[-1]/group[MON_COLUMN].iloc[0])*100,
 
             "Ensayo": ensayo,
 
             "Samples": len(group),
 
-            "t_initial": group["tiempo (min)"].min(),
+            "t_initial": group["Tiempo"].min(),
 
-            "t_final": group["tiempo (min)"].max(),
+            "t_final": group["Tiempo"].max(),
 
-            "Temperature": group["Temp(K?)"].iloc[0],
+            "Temperature": group["Temp_K"].iloc[0],
 
-            "Catalyst": group["[CAT]"].iloc[0],
+            "Catalyst": group["Fe_activo"].iloc[0],
 
-            "Mass Flow": group["Flujo_M"].iloc[0],
+            "Mass Flow": group["H2O2_flujo"].iloc[0],
 
-            "MON_initial": group["[MON]"].iloc[0],
+            "MON_initial": group[MON_COLUMN].iloc[0],
 
-            "MON_final": group["[MON]"].iloc[-1],
+            "MON_final": group[MON_COLUMN].iloc[-1],
 
-            "H2O2_initial": group["[H2O2]"].iloc[0]
+            "H2O2_initial": group["H2O2_flujo"].iloc[0]
             
             
 
@@ -81,29 +79,45 @@ from pathlib import Path
 
 
 def correlation_matrix(df):
-    Path("results/figures").mkdir(
+
+    output_dir = Path(
+        "results/figures"
+    )
+
+    output_dir.mkdir(
         parents=True,
         exist_ok=True
     )
 
-    variables = ALL_FEATURES
+    variables = FEATURES
 
-    corr = df[variables].corr(method="pearson")
-    print("PEARSON CORRELATION MATRIX")
-    print(corr.round(3))
+    corr = df[variables].corr(
+        method="pearson"
+    )
 
-    plt.figure(figsize=(8,7))
+    print(
+        "\nPEARSON CORRELATION MATRIX"
+    )
+
+    print(
+        corr.round(3)
+    )
+
+    plt.figure(
+        figsize=(8, 7)
+    )
 
     im = plt.imshow(
-    corr,
-    cmap="coolwarm",
-    vmin=-1,
-    vmax=1
-)
-    
+        corr,
+        cmap="coolwarm",
+        vmin=-1,
+        vmax=1
+    )
 
     for i in range(len(variables)):
+
         for j in range(len(variables)):
+
             value = corr.iloc[i, j]
 
             plt.text(
@@ -112,9 +126,13 @@ def correlation_matrix(df):
                 f"{value:.2f}",
                 ha="center",
                 va="center",
-                color="white" if abs(value) > 0.5 else "black",
+                color=(
+                    "white"
+                    if abs(value) > 0.5
+                    else "black"
+                ),
                 fontsize=9
-        )
+            )
 
     plt.xticks(
         range(len(variables)),
@@ -130,19 +148,24 @@ def correlation_matrix(df):
 
     cbar = plt.colorbar(im)
 
-    cbar.set_label("Pearson correlation coefficient")
+    cbar.set_label(
+        "Pearson correlation coefficient"
+    )
 
-    plt.title("Pearson Correlation Matrix")
+    plt.title(
+        "Pearson Correlation Matrix"
+    )
 
     plt.tight_layout()
 
     plt.savefig(
-        "results/figures/correlation_matrix.png",
+        output_dir /
+        "correlation_matrix.png",
         dpi=300,
         bbox_inches="tight"
     )
 
-    plt.show()
+    plt.close()
 
 def feature_variability_by_experiment(df):
     variables = []
@@ -169,7 +192,7 @@ def plot_feature_distributions(df):
         exist_ok=True
     )
 
-    variables = ALL_FEATURES
+    variables = FEATURES
 
     fig, axes = plt.subplots(
         2,
@@ -204,7 +227,7 @@ def experiment_conditions(df):
     print("\nEXPERIMENT CONDITIONS")
     print("-"*70)
 
-    cols = FEATURES_NO_TIME
+    cols = FEATURES
 
     summary = (
         df.groupby("Ensayo")[cols]

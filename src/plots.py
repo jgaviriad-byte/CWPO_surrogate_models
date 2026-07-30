@@ -1,14 +1,17 @@
 import os
 import matplotlib.pyplot as plt
 from src.config import (PREDICTIONS_PATH,
-                        FEATURES
+                        FEATURES,
+                        TIME_COLUMN
                     )
 from pathlib import Path
 import shap
 from sklearn.inspection import PartialDependenceDisplay
 from src.utils import sanitize_filename
+from sklearn.metrics import r2_score
 
 def plot_prediction(result, save=True, show=True):
+    
     experiment = result["experiment"]
 
     time = result["time"]
@@ -36,8 +39,8 @@ def plot_prediction(result, save=True, show=True):
         label="Prediction"
     )
 
-    plt.xlabel("Time (min)")
-    plt.ylabel("MON normalized")
+    plt.xlabel("Tiempo")
+    plt.ylabel("C/C0")
     plt.title(f"Experiment {experiment}")
 
     plt.grid(
@@ -572,6 +575,18 @@ def plot_prediction_vs_experimental(
 
         linewidth=2
 
+    )
+
+    r2_val = r2_score(residuals["Experimental"], residuals["Prediction"])
+
+    plt.gca().text(
+        0.05,
+        0.92,
+        f"$R^2 = {r2_val:.4f}$",
+        transform=plt.gca().transAxes,
+        fontsize=11,
+        verticalalignment="top",
+        bbox=dict(boxstyle="round,pad=0.5", facecolor="white", alpha=0.85),
     )
 
     plt.xlabel("Experimental")

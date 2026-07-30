@@ -1,5 +1,5 @@
 from pathlib import Path
-
+import numpy as np
 import joblib
 
 from src.feature_engineering import (
@@ -7,10 +7,22 @@ from src.feature_engineering import (
     split_features_target,
     scale_features,
     scale_target,
-    create_polynomial_features
+    create_polynomial_features,
+    log_transform_target
 )
-
+from src.config import (
+    TIME_COLUMN,
+    EXPERIMENT_COLUMN
+)
 from src.utils import create_directory
+
+from sklearn.metrics import (
+    r2_score,
+    mean_squared_error,
+)
+import numpy as np
+
+
 
 def train_single_fold(
     model_config,
@@ -30,6 +42,13 @@ def train_single_fold(
         features,
         target
     )
+
+    if model_config["use_log_target"]:
+
+        y_train, y_test, scaler_log_y = log_transform_target(
+            y_train,
+            y_test
+        )
 
     if model_config["use_polynomial"]:
 
@@ -71,20 +90,44 @@ def train_single_fold(
             y_test.reshape(-1, 1)
         ).ravel()
 
+    if model_config["use_log_target"]:
+
+        y_pred = np.exp(y_pred)
+
+        y_test = np.exp(y_test)
+
+    print("\n" + "="*70)
+    baseline = np.full_like(
+    y_test,
+    np.mean(y_train))
+
+    print(f"Experiment {test_df['Ensayo'].iloc[0]}")
+
+    print(f"Train size : {len(X_train)}")
+
+    print(f"Test size  : {len(X_test)}")
+
+    print(f"Target std : {np.std(y_test):.6f}")
+
+    print(f"Baseline R2: {r2_score(y_test, baseline):.4f}")
+
+    print(f"Model R2   : {r2_score(y_test, y_pred):.4f}")
+
+    print(
+    f"RMSE       : {np.sqrt(mean_squared_error(y_test,y_pred)):.6f}"
+)
+
+    print("="*70)
+
     return {
-
-        "experiment": test_df["Ensayo"].iloc[0],
-
-        "time": test_df["tiempo (min)"].values,
-
+        "experiment": test_df[EXPERIMENT_COLUMN].iloc[0],
+        "time": test_df[TIME_COLUMN].values,
         "y_true": y_test,
-
         "y_pred": y_pred,
-
         "model": model,
+    }
     
-   
-}
+
 
 def train_one_model(
     model_name,
@@ -183,6 +226,15 @@ def train_final_model(
         )
 
         transformers["scaler_y"] = scaler_y
+
+    if model_config["use_log_target"]:
+
+        y,_, log_y = log_transform_target(
+            y,
+            y
+        ) 
+
+        transformers["log_y"] = log_y
 
     model = model_config["builder"]()
 

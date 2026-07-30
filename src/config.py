@@ -5,40 +5,38 @@ from sklearn.gaussian_process.kernels import (
     Matern,
     WhiteKernel,
 )
-DATA_PATH = "data/raw/Doe_Completos.csv"
+EXCLUDED_EXPERIMENTS = [4, 7, 13, 16, 20]
 
-PROCESSED_DATA_PATH = "data/processed/Doe_processed.csv"
+DATA_PATH = "data/raw/doe_data.csv"
+
+PROCESSED_DATA_PATH = "data/processed/doe_processed.csv"
 
 RANDOM_STATE = 42
 
 EXPERIMENT_COLUMN = "Ensayo"
 
-TARGET = "[MON]"
+TARGET = "C/C0"
 
-TARGET_NORMALIZED = "MON_norm"
+TIME_COLUMN = "Tiempo"
 
-FEATURES = [
-    "tiempo (min)",
-    "[CAT]",
-    "Temp(K?)",
-    "Flujo_M"
-]
+TEMPERATURE_COLUMN = "Temp_K"
 
-FEATURES_NO_TIME = [
-    "[CAT]",
-    "Temp(K?)",
-    "Flujo_M"
-]
+PH_COLUMN = "pH"
 
-ALL_FEATURES = [
-        "tiempo (min)",
-        "[CAT]",
-        "Temp(K?)",
-        "Flujo_M",
-        "[MON]",
-        "MON_norm",
-        "[H2O2]"
-]
+CATALYST_COLUMN = "Fe_activo"
+
+H2O2_COLUMN = "H2O2_flujo"
+
+MON_INITIAL_COLUMN = "MON_0"
+
+MON_COLUMN = "MON"
+
+FEATURES = [TEMPERATURE_COLUMN,
+            PH_COLUMN,
+            CATALYST_COLUMN,
+            H2O2_COLUMN,
+            TIME_COLUMN,
+            TARGET]
 
 FIGURES_PATH = "results/figures"
 PREDICTIONS_PATH = f"{FIGURES_PATH}/predictions"
@@ -51,7 +49,9 @@ MODEL_CONFIG = {
 
         "use_scaling": False,
 
-        "use_target_scaling": False
+        "use_target_scaling": False,
+
+        "use_log_target": False
 
     },
 
@@ -61,7 +61,9 @@ MODEL_CONFIG = {
 
         "use_scaling": False,
 
-        "use_target_scaling": False
+        "use_target_scaling": False,
+
+        "use_log_target": True
 
     },
 
@@ -71,7 +73,9 @@ MODEL_CONFIG = {
 
         "use_scaling": True,
 
-        "use_target_scaling": True
+        "use_target_scaling": True,
+
+        "use_log_target": False
 
     },
 
@@ -81,31 +85,36 @@ MODEL_CONFIG = {
 
         "use_scaling": True,
 
-        "use_target_scaling": True
+        "use_target_scaling": True,
 
+        "use_log_scaling": False
     }
 
 }
 
 RF_PARAMS = {
 
-    "n_estimators": 200,
+    "n_estimators": 748,
 
-    "max_depth": 15,
+    "max_depth": 40,
 
-    "min_samples_leaf": 5,
+    "min_samples_leaf": 4,
+
+    "min_samples_split": 2,
 
     "random_state": 42,
 
-    "n_jobs": -1
+    "n_jobs": -1,
+
+    "max_features": None,
 
 }
 
 ANN_PARAMS = {
 
-    "hidden_layer_sizes": (128,64,32),
+    "hidden_layer_sizes": (128,64),
 
-    "activation": "relu",
+    "activation": "tanh",
 
     "solver": "adam",
 
@@ -113,7 +122,9 @@ ANN_PARAMS = {
 
     "max_iter":1000,
 
-    "random_state":42
+    "random_state":42,
+
+    "bootstrap":True
 
 }
 

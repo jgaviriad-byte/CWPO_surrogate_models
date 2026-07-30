@@ -1,74 +1,98 @@
 import pandas as pd
 
-from src.config import (PROCESSED_DATA_PATH,
-                        FEATURES_NO_TIME,
-                        FEATURES
-    )
-from src.models import get_models
-from src.validation import generate_leave_one_experiment_out
-from src.training import (train_all_models,
-    train_and_save_all_models
+from sklearn.model_selection import (
+    GroupKFold,
+    RandomizedSearchCV
+)
+
+from sklearn.ensemble import RandomForestRegressor
+
+from scipy.stats import randint
+from src.config import (
+    FEATURES,
+    TARGET,
+    EXPERIMENT_COLUMN,
+    RANDOM_STATE,
+    DATA_PATH, 
+    EXCLUDED_EXPERIMENTS
+)
+from src.config import FEATURES
+from src.preprocessing import (
+    load_dataset,
+      validate_dataset,
+        save_processed_dataset
+)
+from src.plots import (
+    plot_experiment,
+    feature_summary,
+    plot_prediction
+)
+from src.config import DATA_PATH, EXCLUDED_EXPERIMENTS
+from src.eda import (
+    dataset_summary,
+    experiment_summary,
+    correlation_matrix,
+    feature_variability_by_experiment,
+    plot_feature_distributions,
+    experiment_conditions
+)
+from src.outliers import print_q_test
+from src.validation import (
+    generate_leave_one_experiment_out,
+    summarize_validation,
+    verify_validation
+)
+from src.training import (
+    train_one_model,
+    train_final_model,
+    save_trained_model
 )
 from src.evaluation import (
-    evaluate_all_models,
-    print_all_models_summary,
     evaluate_all_folds,
-    calculate_metrics,
-    print_metrics
+    summarize_metrics,
+    print_summary
+)
+from src.models import get_models
+from src.evaluation import (
+    evaluate_all_models,
+    print_all_models_summary
+)
+from src.save_results import save_predictions
+"""
+for feature in FEATURES:
     
-)
-from src.eda import experiment_conditions, correlation_matrix
-from src.plots import (plot_experiment,
-                       plot_mon_vs_time,
-                    plot_h2o2_vs_time,
-                    plot_MONnorm_vs_time)
-from src.outliers import print_q_test
-from src.save_results import (
-
-    save_metrics,
-    save_predictions,
-    save_summary
-)
-import pandas as pd
-
-from src.predict import (predict_dataframe)
-
+            values = (
+            df
+            .groupby("Ensayo")[feature]
+            .first()
+        )
+    
+            print_q_test(
+            values,
+            feature
+        )   
+"""
 def main():
-
-    MODEL_PATH = (
-        "results/models/"
-        "Gaussian Process Regression.joblib"
+    df = load_dataset()
+    experiment_conditions(df)
+    correlation_matrix(df)
+    df = df[
+    ~df["Ensayo"].isin(EXCLUDED_EXPERIMENTS)
+    ].copy()
+    folds = generate_leave_one_experiment_out(df)
+    MODELS = get_models()
+    model_name = "Random Forest"
+    model_config = MODELS["Random Forest"]
+    model, transformers = train_final_model(
+        model_config,
+        df
     )
-
-    print("=" * 60)
-    print("TESTING TRAINED MODEL")
-    print("=" * 60)
-
-    df = pd.read_csv(PROCESSED_DATA_PATH)
-
-    X = df[FEATURES].copy()
-
-    predictions = predict_dataframe(
-        MODEL_PATH,
-        X
+    save_trained_model(
+        model,
+        transformers,
+        model_name
     )
-
-    print("\nFirst 10 predictions:\n")
-
-    print(predictions[:10])
-
-    print("\nPrediction shape:")
-
-    print(predictions.shape)
-
-    metrics = calculate_metrics(
-    df["MON_norm"],
-    predictions
-)
-
-    print_metrics(metrics)
-
-    print("\nPrediction finished successfully.")
-
+    
+    
 if __name__ == "__main__":
     main()

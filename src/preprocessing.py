@@ -28,8 +28,8 @@ def validate_dataset(df):
 
     print("\nTime range:")
     print(
-        f"{df['tiempo (min)'].min()} "
-        f"→ {df['tiempo (min)'].max()} min"
+        f"{df['Tiempo'].min()} "
+        f"→ {df['Tiempo'].max()} min"
     )
 
     if df.isnull().sum().sum() > 0:
@@ -46,7 +46,7 @@ def create_mon_fraction(df):
 
     # Obtain the initial MON concentration of every experiment
     mon_initial = (
-        df[df["tiempo (min)"] == 0]
+        df[df["Tiempo"] == 0]
         .set_index("Ensayo")["[MON]"]
     )
 

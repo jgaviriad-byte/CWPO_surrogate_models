@@ -1,10 +1,11 @@
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.preprocessing import StandardScaler
-from src.config import FEATURES, TARGET_NORMALIZED, POLY_DEGREE
+import numpy as np
+from src.config import FEATURES, TARGET, POLY_DEGREE
 
 def get_features_target():
     
-    return FEATURES, TARGET_NORMALIZED
+    return FEATURES, TARGET
 
 def split_features_target(df, features, target):
 
@@ -66,3 +67,15 @@ def create_polynomial_features(
     X_test_poly = poly.transform(X_test)
 
     return X_train_poly, X_test_poly, poly
+
+def log_transform_target(
+        y_train,
+        y_test
+):
+    log = np.log
+
+    y_train_log = log(y_train)
+
+    y_test_log = log(y_test)
+
+    return y_train_log, y_test_log, log
