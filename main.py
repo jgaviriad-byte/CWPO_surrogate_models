@@ -92,7 +92,7 @@ def main():
         transformers,
         model_name
     )
-    
+    plot_experiment(df)
     
 if __name__ == "__main__":
     main()
