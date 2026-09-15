@@ -1,5 +1,6 @@
 import pandas as pd
 from src.config import DATA_PATH
+
 def load_dataset():
     df = pd.read_csv(DATA_PATH)
 

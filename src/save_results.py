@@ -75,22 +75,94 @@ def save_metrics(metrics, model_name):
     )
 
 
-def save_summary(summary):
-    """
-    Save overall model comparison.
-    """
+def save_summary(
 
-    output_dir = Path(
-        "results/metrics"
+    summary,
+
+    model_name
+
+):
+
+    os.makedirs(
+
+        "results/summaries",
+
+        exist_ok=True
+
     )
 
-    create_directory(output_dir)
+    df = pd.DataFrame(
 
-    df = pd.DataFrame(summary).T
+        [summary]
+
+    )
+
+    filename = model_name.replace(" ", "_")
 
     df.to_csv(
 
-        output_dir /
-        "summary.csv"
+        f"results/summaries/{filename}.csv",
+
+        index=False
 
     )
+    
+import os
+import pandas as pd
+
+
+def save_models_comparison(summaries):
+
+    comparison = []
+
+    for model_name, summary in summaries.items():
+
+        comparison.append({
+
+            "Model": model_name,
+
+            "Mean R2": summary["Mean R2"],
+
+            "Std R2": summary["Std R2"],
+
+            "Mean RMSE": summary["Mean RMSE"],
+
+            "Std RMSE": summary["Std RMSE"],
+
+            "Mean MAE": summary["Mean MAE"],
+
+            "Std MAE": summary["Std MAE"]
+
+        })
+
+    comparison = pd.DataFrame(comparison)
+
+    comparison = comparison.sort_values(
+
+        by="Mean R2",
+
+        ascending=False
+
+    )
+
+    os.makedirs(
+
+        "results/metrics",
+
+        exist_ok=True
+
+    )
+
+    comparison.to_csv(
+
+        "results/metrics/Models_Comparison.csv",
+
+        index=False
+
+    )
+
+    print("\nModel comparison saved successfully.")
+
+    print(comparison)
+
+    return comparison

@@ -12,20 +12,24 @@ from src.config import (
     )
 
 
-def load_trained_model(model_path):
-    """
-    Load a trained model and its preprocessing objects.
-    """
+import os
+import joblib
+
+from src.config import MODELS_PATH
+
+
+def load_trained_model(model_name):
+
+    filename = model_name.replace(" "," ") + ".joblib"
+
+    model_path = os.path.join(
+        MODELS_PATH,
+        filename
+    )
 
     package = joblib.load(model_path)
 
-    return (
-
-        package["model"],
-
-        package["transformers"]
-
-    )
+    return package["model"], package["transformers"]
 
 
 def preprocess_input(

@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
-from src.config import FEATURES
+from src.config import FEATURES, FEATURE_LABELS
 
 def dataset_summary(df):
 
@@ -89,6 +89,10 @@ def correlation_matrix(df):
         exist_ok=True
     )
 
+    # =====================================================
+    # Variables originales del dataset
+    # =====================================================
+
     variables = FEATURES
 
     corr = df[variables].corr(
@@ -103,8 +107,26 @@ def correlation_matrix(df):
         corr.round(3)
     )
 
+    # =====================================================
+    # Nombres que SOLO aparecerán en la gráfica
+    # =====================================================
+
+    labels = FEATURE_LABELS
+    
+    plot_labels = [
+        labels.get(
+            variable,
+            variable
+        )
+        for variable in variables
+    ]
+
+    # =====================================================
+    # Plot
+    # =====================================================
+
     plt.figure(
-        figsize=(8, 7)
+        figsize=(9, 8)
     )
 
     im = plt.imshow(
@@ -113,6 +135,10 @@ def correlation_matrix(df):
         vmin=-1,
         vmax=1
     )
+
+    # =====================================================
+    # Correlation values
+    # =====================================================
 
     for i in range(len(variables)):
 
@@ -134,19 +160,29 @@ def correlation_matrix(df):
                 fontsize=9
             )
 
+    # =====================================================
+    # Axis labels
+    # =====================================================
+
     plt.xticks(
         range(len(variables)),
-        variables,
+        plot_labels,
         rotation=45,
         ha="right"
     )
 
     plt.yticks(
         range(len(variables)),
-        variables
+        plot_labels
     )
 
-    cbar = plt.colorbar(im)
+    # =====================================================
+    # Colorbar
+    # =====================================================
+
+    cbar = plt.colorbar(
+        im
+    )
 
     cbar.set_label(
         "Pearson correlation coefficient"

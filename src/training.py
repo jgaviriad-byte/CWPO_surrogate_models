@@ -1,4 +1,5 @@
 from pathlib import Path
+import time
 import numpy as np
 import joblib
 
@@ -24,7 +25,8 @@ import numpy as np
 
 
 
-def train_single_fold(
+def train_single_fold( 
+    model_name,
     model_config,
     train_df,
     test_df
@@ -43,9 +45,11 @@ def train_single_fold(
         target
     )
 
+    y_train_original = y_train.copy()
+
     if model_config["use_log_target"]:
 
-        y_train, y_test, scaler_log_y = log_transform_target(
+        y_train, y_test = log_transform_target(
             y_train,
             y_test
         )
@@ -78,17 +82,35 @@ def train_single_fold(
         y_train
     )
 
-    y_pred = model.predict(X_test)
+    if model_name == "Gaussian Process Regression":
+
+        y_pred, y_std = model.predict(
+
+        X_test,
+
+        return_std=True
+
+    )
+
+    else:
+
+        y_pred = model.predict(X_test)
+
+        y_std = None
 
     if model_config["use_target_scaling"]:
 
         y_pred = scaler_y.inverse_transform(
-            y_pred.reshape(-1, 1)
+            y_pred.reshape(-1,1)
         ).ravel()
 
         y_test = scaler_y.inverse_transform(
-            y_test.reshape(-1, 1)
+            y_test.reshape(-1,1)
         ).ravel()
+
+        if y_std is not None:
+
+            y_std *= scaler_y.scale_[0]
 
     if model_config["use_log_target"]:
 
@@ -96,10 +118,19 @@ def train_single_fold(
 
         y_test = np.exp(y_test)
 
+        if y_std is not None:
+
+            y_std *= y_pred
+
     print("\n" + "="*70)
+
     baseline = np.full_like(
-    y_test,
-    np.mean(y_train))
+
+        y_test,
+
+        y_train_original.mean()
+
+)
 
     print(f"Experiment {test_df['Ensayo'].iloc[0]}")
 
@@ -118,14 +149,22 @@ def train_single_fold(
 )
 
     print("="*70)
-
+    
     return {
-        "experiment": test_df[EXPERIMENT_COLUMN].iloc[0],
-        "time": test_df[TIME_COLUMN].values,
+
+        "experiment": test_df["Ensayo"].iloc[0],
+
+        "time": test_df["Tiempo"].values,
+
         "y_true": y_test,
+
         "y_pred": y_pred,
-        "model": model,
-    }
+
+        "y_std": y_std,
+
+        "model": model
+
+}
     
 
 
@@ -145,6 +184,7 @@ def train_one_model(
         train_df, test_df, experiment = fold
 
         result = train_single_fold(
+            model_name,
             model_config,
             train_df,
             test_df
@@ -229,10 +269,9 @@ def train_final_model(
 
     if model_config["use_log_target"]:
 
-        y,_, log_y = log_transform_target(
-            y,
-            y
-        ) 
+        y, log_y = log_transform_target(
+    y
+) 
 
         transformers["log_y"] = log_y
 
@@ -248,34 +287,38 @@ def train_final_model(
 
 def save_trained_model(
     model,
-    transformers,
-    model_name
+    transformers=None,
+    model_name="model",
+    model_config=None
 ):
     """
     Save trained model and preprocessing objects.
+    Compatible format:
+    {
+        "model": model,
+        "transformers": {...},
+        "model_config": {...}   # optional
+    }
     """
 
-    output_dir = Path(
-        "results/models"
-    )
-
+    output_dir = Path("results/models")
     create_directory(output_dir)
 
     package = {
-
         "model": model,
-
-        "transformers": transformers
-
+        "transformers": transformers or {}
     }
+
+    if model_config is not None:
+        package["model_config"] = {
+            key: value
+            for key, value in model_config.items()
+            if isinstance(value, (str, int, float, bool, type(None)))
+        }
 
     filename = output_dir / f"{model_name}.joblib"
 
-    joblib.dump(
-        package,
-        filename
-    )
-
+    joblib.dump(package, filename)
     print(f"Saved: {filename}")
 
 

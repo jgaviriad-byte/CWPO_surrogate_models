@@ -2,42 +2,96 @@ import numpy as np
 import pandas as pd
 
 
-def compute_residuals(results):
+import pandas as pd
+import numpy as np
+
+from src.config import FEATURES, TARGET
+
+
+def compute_residuals(
+    model,
+    transformers,
+    df,
+    model_config
+):
     """
-    Compute residuals for every prediction.
-
-    Residual = Experimental - Prediction
+    Compute residuals using a trained model.
     """
 
-    residuals = []
+    X = df[FEATURES].copy()
 
-    for result in results:
+    y = df[TARGET].values
 
-        df = pd.DataFrame({
+    # ----------------------------------------
+    # Polynomial features
+    # ----------------------------------------
 
-            "Experiment": result["experiment"],
+    if model_config["use_polynomial"]:
 
-            "Time": result["time"],
+        poly = transformers["poly"]
 
-            "Experimental": result["y_true"],
+        X = poly.transform(X)
 
-            "Prediction": result["y_pred"]
+    # ----------------------------------------
+    # Feature scaling
+    # ----------------------------------------
 
-        })
+    if model_config["use_scaling"]:
 
-        df["Residual"] = (
+        scaler_X = transformers["scaler_X"]
 
-            df["Experimental"]
-            -
-            df["Prediction"]
+        X = scaler_X.transform(X)
 
-        )
+    # ----------------------------------------
+    # Predict
+    # ----------------------------------------
 
-        residuals.append(df)
+    y_pred = model.predict(X)
 
-    residuals = pd.concat(
-        residuals,
-        ignore_index=True
+    # ----------------------------------------
+    # Undo target scaling
+    # ----------------------------------------
+
+    if model_config["use_target_scaling"]:
+
+        scaler_y = transformers["scaler_y"]
+
+        y_pred = scaler_y.inverse_transform(
+            y_pred.reshape(-1,1)
+        ).ravel()
+
+    # ----------------------------------------
+    # Undo log transform
+    # ----------------------------------------
+
+    if model_config["use_log_target"]:
+
+        y_pred = np.exp(y_pred)
+
+    # ----------------------------------------
+    # Build dataframe
+    # ----------------------------------------
+
+    residuals = pd.DataFrame({
+
+        "Experiment": df["Ensayo"],
+
+        "Time": df["Tiempo"],
+
+        "Experimental": y,
+
+        "Prediction": y_pred
+
+    })
+
+    residuals["Residual"] = (
+
+        residuals["Experimental"]
+
+        -
+
+        residuals["Prediction"]
+
     )
 
     return residuals

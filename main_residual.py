@@ -1,80 +1,110 @@
 import pandas as pd
-import numpy as np
-from src.evaluation import evaluate_all_folds
-from src.evaluation import evaluate_all_folds
-from src.models import MODEL_CONFIG, get_models
+from src import residuals
+from src.preprocessing import load_dataset
 
-from src.config import EXCLUDED_EXPERIMENTS, PROCESSED_DATA_PATH
+from src.config import EXCLUDED_EXPERIMENTS
 
-from src.training import train_all_models, train_one_model
+from src.models import get_models
 
-from src.validation import generate_leave_one_experiment_out
+from src.predict import load_trained_model
 
 from src.residuals import compute_residuals
 
 from src.plots import (
-
-    plot_prediction_vs_experimental,
-
-    plot_residuals,
-
-    plot_residual_distribution
-
-)
-from src.preprocessing import load_dataset
+        plot_prediction_vs_experimental,
+        plot_residuals,
+        plot_residual_distribution,
+        plot_parity
+    )
 
 
 def main():
-    results = {}
 
-    df = load_dataset()
-    df = df[
-    ~df["Ensayo"].isin(EXCLUDED_EXPERIMENTS)
-    ].copy()
-    folds = generate_leave_one_experiment_out(df)
-    MODELS = get_models()
-    model_name = "Random Forest"
-    model_config = MODELS["Random Forest"]
-    results = train_one_model(
-        model_name,
-        model_config,
-        folds
-        )
-    all_metrics = evaluate_all_folds(results)
+        df = load_dataset()
 
-    rf_results = results
-    
-    residuals = compute_residuals(
+        df = df[
+            ~df["Ensayo"].isin(EXCLUDED_EXPERIMENTS)
+        ].copy()
 
-        rf_results
 
-    )
+        
+        MODELS = get_models()
 
-    plot_prediction_vs_experimental(
+        for model_name in MODELS.keys():
 
-        residuals,
+            print("\n" + "="*70)
+            print(f"Evaluating {model_name}")
+            print("="*70)
 
-        "Prediction_vs_Experimental"
+            try:
 
-    )
+                model, transformers = load_trained_model(
+                    model_name
+                )
 
-    plot_residuals(
+                residuals = compute_residuals(
 
-        residuals,
+                    model,
 
-        "ResidualPlot"
+                    transformers,
 
-    )
+                    df,
 
-    plot_residual_distribution(
+                    MODELS[model_name]
 
-        residuals,
+                )
 
-        "ResidualHistogram"
+                plot_prediction_vs_experimental(
 
-    )
+                    residuals,
+
+                    model_name,
+
+                    "Prediction_vs_Experimental"
+
+                )
+
+                plot_parity(
+
+                    residuals,
+
+                    model_name,
+
+                    "ParityPlot"
+
+)
+
+                plot_residuals(
+
+                    residuals,
+
+                    model_name,
+
+                    "ResidualPlot"
+
+                )
+
+                plot_residual_distribution(
+
+                    residuals,
+
+                    model_name,
+
+                    "ResidualHistogram"
+
+                )
+
+                print(f"✓ {model_name} finished successfully.")
+
+            except Exception as e:
+
+                print(f"\n❌ ERROR in {model_name}")
+                print(type(e).__name__)
+                print(e)
+
+                continue
 
 
 if __name__ == "__main__":
 
-    main()
+        main()

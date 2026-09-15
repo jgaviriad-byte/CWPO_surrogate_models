@@ -653,3 +653,472 @@ def plot_residual_distribution(
     )
 
     plt.close()
+
+def plot_gpr_prediction(
+    result,
+    model_name,
+    save=True,
+    show=False
+):
+
+    experiment = result["experiment"]
+
+    time = result["time"]
+
+    y_true = result["y_true"]
+
+    y_pred = result["y_pred"]
+
+    y_std = result["y_std"]
+
+    plt.figure(figsize=(8,5))
+
+    ####################################
+    # Experimental
+    ####################################
+
+    plt.scatter(
+        time,
+        y_true,
+        color="black",
+        s=45,
+        label="Experimental",
+        zorder=3
+    )
+
+    ####################################
+    # Prediction
+    ####################################
+
+    plt.plot(
+        time,
+        y_pred,
+        color="royalblue",
+        linewidth=2,
+        label="GPR prediction"
+    )
+
+    ####################################
+    # Confidence interval
+    ####################################
+
+    if y_std is not None:
+
+        lower = y_pred - 1.96*y_std
+
+        upper = y_pred + 1.96*y_std
+
+        plt.fill_between(
+
+            time,
+
+            lower,
+
+            upper,
+
+            color="royalblue",
+
+            alpha=0.25,
+
+            label="95% confidence interval"
+
+        )
+
+    plt.xlabel("Time (min)")
+
+    plt.ylabel("H2O2")
+
+    plt.title(f"Experiment {experiment}")
+
+    plt.grid(alpha=0.3)
+
+    plt.legend()
+
+    plt.tight_layout()
+
+    if save:
+
+        folder = os.path.join(
+            PREDICTIONS_PATH,
+            model_name
+        )
+
+        os.makedirs(
+            folder,
+            exist_ok=True
+        )
+
+        plt.savefig(
+
+            os.path.join(
+
+                folder,
+
+                f"GPR_experiment_{experiment}.png"
+
+            ),
+
+            dpi=300
+
+        )
+
+    if show:
+
+        plt.show()
+
+    else:
+
+        plt.close()
+
+import os
+import matplotlib.pyplot as plt
+
+from src.config import PREDICTIONS_PATH
+
+
+def plot_model_comparison(
+
+    experiment,
+
+    models_results,
+
+    save=True,
+    show=True
+
+):
+    """
+    Parameters
+    ----------
+    experiment : int
+
+    models_results : dict
+
+    {
+
+        "Random Forest": rf_results,
+
+        "Gaussian Process": gpr_results,
+
+        ...
+
+    }
+
+    """
+
+    plt.figure(figsize=(8,5))
+
+    experimental_drawn = False
+
+    for model_name, results in models_results.items():
+
+        for result in results:
+
+            if result["experiment"] != experiment:
+                continue
+
+            if not experimental_drawn:
+
+                plt.plot(
+
+                    result["time"],
+
+                    result["y_true"],
+
+                    color="black",
+
+                    linewidth=3,
+
+                    label="Experimental"
+
+                )
+
+                experimental_drawn = True
+
+            plt.plot(
+
+                result["time"],
+
+                result["y_pred"],
+
+                linewidth=2,
+
+                label=model_name
+
+            )
+
+    plt.xlabel("Time (min)")
+
+    plt.ylabel("H2O2")
+
+    plt.title(f"Experiment {experiment}")
+
+    plt.grid(alpha=0.3)
+
+    plt.legend()
+
+    plt.tight_layout()
+
+    if save:
+
+        folder = os.path.join(
+
+            PREDICTIONS_PATH,
+
+            "Comparison"
+
+        )
+
+        os.makedirs(folder, exist_ok=True)
+
+        plt.savefig(
+
+            os.path.join(
+
+                folder,
+
+                f"comparison_exp_{experiment}.png"
+
+            ),
+
+            dpi=300
+
+        )
+
+    if show:
+
+        plt.show()
+
+    else:
+
+        plt.close()
+        
+def plot_rmse_comparison(
+    rmse_values,
+    save_path="results/figures/rmse_comparison.png"
+):
+
+    Path(save_path).parent.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    display_names = {
+    "Random Forest": "RF",
+    "Artificial Neural Network": "ANN",
+    "Gaussian Process Regression": "GPR",
+    "Lumped Kinetic Model": "Kinetic model"
+}
+
+    names = [
+    display_names.get(name, name)
+    for name in rmse_values.keys()
+]
+    values = list(rmse_values.values())
+
+    plt.figure(figsize=(9,5))
+
+    bars = plt.bar(
+    names,
+    values
+)
+
+    plt.xticks(
+    rotation=20,
+    ha="right"
+)
+
+    for bar in bars:
+
+        height = bar.get_height()
+
+        plt.text(
+            bar.get_x()+bar.get_width()/2,
+            height,
+            f"{height:.4f}",
+            ha="center",
+            va="bottom",
+            fontsize=10
+        )
+
+    plt.ylabel("Average RMSE")
+    plt.title("Comparison of prediction error between models")
+
+    plt.grid(
+        axis="y",
+        alpha=0.3
+    )
+
+    plt.tight_layout()
+
+    plt.savefig(
+        save_path,
+        dpi=300
+    )
+
+    plt.close()
+    
+def plot_parity(
+    residuals,
+    model_name,
+    save_path="results/parity_plots"
+):
+    """
+    Generate a parity plot (Experimental vs Predicted)
+    and return the R² value.
+
+    Parameters
+    ----------
+    residuals : pandas.DataFrame
+        Must contain:
+        - Experimental
+        - Prediction
+
+    model_name : str
+        Name of the model.
+
+    save_path : str
+        Directory where the figure will be saved.
+    """
+
+    import os
+    import matplotlib.pyplot as plt
+    from sklearn.metrics import r2_score
+
+    # =====================================================
+    # Create output directory
+    # =====================================================
+
+    os.makedirs(
+        save_path,
+        exist_ok=True
+    )
+
+    # =====================================================
+    # Data
+    # =====================================================
+
+    experimental = residuals["Experimental"]
+    prediction = residuals["Prediction"]
+
+    # =====================================================
+    # R²
+    # =====================================================
+
+    r2 = r2_score(
+        experimental,
+        prediction
+    )
+
+    # =====================================================
+    # Figure
+    # =====================================================
+
+    plt.figure(
+        figsize=(6, 6)
+    )
+
+    # Experimental vs prediction points
+    plt.scatter(
+        experimental,
+        prediction,
+        s=45,
+        color="royalblue",
+        edgecolor="black",
+        alpha=0.8,
+        label="Predictions"
+    )
+
+    # =====================================================
+    # Ideal prediction line
+    # =====================================================
+
+    minimum = min(
+        experimental.min(),
+        prediction.min()
+    )
+
+    maximum = max(
+        experimental.max(),
+        prediction.max()
+    )
+
+    plt.plot(
+        [minimum, maximum],
+        [minimum, maximum],
+        "r--",
+        linewidth=2,
+        label="Ideal prediction"
+    )
+
+    # =====================================================
+    # R² text
+    # =====================================================
+
+    plt.text(
+        0.05,
+        0.92,
+        f"$R^2$ = {r2:.4f}",
+        transform=plt.gca().transAxes,
+        fontsize=12,
+        bbox=dict(
+            facecolor="white",
+            alpha=0.85
+        )
+    )
+
+    # =====================================================
+    # Labels
+    # =====================================================
+
+    plt.xlabel(
+        r"Experimental $H2O2$"
+    )
+
+    plt.ylabel(
+        r"Predicted $H2O2$"
+    )
+
+    plt.title(
+        f"Parity Plot - {model_name}"
+    )
+
+    plt.grid(
+        alpha=0.3
+    )
+
+    plt.legend()
+
+    plt.tight_layout()
+
+    # =====================================================
+    # Filename
+    # =====================================================
+
+    safe_model_name = (
+        model_name
+        .replace(" ", "_")
+    )
+
+    filename = os.path.join(
+        save_path,
+        f"{safe_model_name}_Parity.png"
+    )
+
+    # =====================================================
+    # Save
+    # =====================================================
+
+    plt.savefig(
+        filename,
+        dpi=300,
+        bbox_inches="tight"
+    )
+
+    plt.close()
+
+    print(
+        f"✓ Parity plot saved: {filename}"
+    )
+
+    return r2
+

@@ -69,13 +69,15 @@ def create_polynomial_features(
     return X_train_poly, X_test_poly, poly
 
 def log_transform_target(
-        y_train,
-        y_test
+    y_train,
+    y_test=None
 ):
-    log = np.log
 
-    y_train_log = log(y_train)
+    y_train_log = np.log(y_train)
 
-    y_test_log = log(y_test)
+    if y_test is not None:
+        y_test_log = np.log(y_test)
+    else:
+        y_test_log = None
 
-    return y_train_log, y_test_log, log
+    return y_train_log, y_test_log
